@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dijkstra's Algorithm</title>
+
+<style>
+    body{
+        font-family: Arial, sans-serif;
+        background:#f4f4f4;
+        margin:0;
+        padding:20px;
+    }
+
+    h1{
+        text-align:center;
+        color:#333;
+    }
+
+    .container{
+        max-width:900px;
+        margin:auto;
+        background:#fff;
+        padding:20px;
+        border-radius:10px;
+        box-shadow:0px 4px 10px rgba(0,0,0,0.2);
+    }
+
+    button{
+        display:block;
+        margin:20px auto;
+        padding:12px 25px;
+        font-size:16px;
+        background:#007BFF;
+        color:white;
+        border:none;
+        border-radius:5px;
+        cursor:pointer;
+    }
+
+    button:hover{
+        background:#0056b3;
+    }
+
+    table{
+        width:100%;
+        border-collapse:collapse;
+        margin-top:20px;
+    }
+
+    th,td{
+        border:1px solid #ddd;
+        padding:10px;
+        text-align:center;
+    }
+
+    th{
+        background:#007BFF;
+        color:white;
+    }
+
+    tr:nth-child(even){
+        background:#f2f2f2;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>Dijkstra's Shortest Path Algorithm</h1>
+
+<button onclick="runDijkstra()">Run Algorithm</button>
+
+<table id="resultTable">
+<thead>
+<tr>
+<th>Vertex</th>
+<th>Distance</th>
+<th>Shortest Path</th>
+</tr>
+</thead>
+
+<tbody>
+
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+// ---------- Priority Queue ----------
+class PriorityQueue{
+
+    constructor(){
+        this.items=[];
+    }
+
+    enqueue(item){
+        this.items.push(item);
+        this.items.sort((a,b)=>a[0]-b[0]);
+    }
+
+    dequeue(){
+        return this.items.shift();
+    }
+
+    isEmpty(){
+        return this.items.length===0;
+    }
+
+}
+
+// ---------- Dijkstra ----------
+function dijkstra(graph,source){
+
+    const n=Object.keys(graph).length;
+
+    const dist=new Array(n).fill(Infinity);
+    const prev=new Array(n).fill(null);
+    const visited=new Set();
+
+    dist[source]=0;
+
+    const pq=new PriorityQueue();
+    pq.enqueue([0,source]);
+
+    while(!pq.isEmpty()){
+
+        const [d,u]=pq.dequeue();
+
+        if(visited.has(u))
+            continue;
+
+        visited.add(u);
+
+        for(const [v,w] of graph[u]){
+
+            if(dist[u]+w<dist[v]){
+
+                dist[v]=dist[u]+w;
+                prev[v]=u;
+
+                pq.enqueue([dist[v],v]);
+
+            }
+
+        }
+
+    }
+
+    return {dist,prev};
+
+}
+
+// ---------- Path ----------
+function reconstructPath(prev,source,target){
+
+    const path=[];
+
+    let node=target;
+
+    while(node!==null){
+
+        path.push(node);
+        node=prev[node];
+
+    }
+
+    path.reverse();
+
+    if(path.length>0 && path[0]===source)
+        return path;
+
+    return [];
+
+}
+
+// ---------- Graph ----------
+const graph={
+
+0:[[1,4],[2,1]],
+1:[[3,1]],
+2:[[1,2],[3,5]],
+3:[[4,3]],
+4:[[5,2]],
+5:[]
+
+};
+
+// ---------- Run ----------
+function runDijkstra(){
+
+    const source=0;
+
+    const result=dijkstra(graph,source);
+
+    const tbody=document.querySelector("#resultTable tbody");
+
+    tbody.innerHTML="";
+
+    for(let v=0;v<Object.keys(graph).length;v++){
+
+        const row=document.createElement("tr");
+
+        const path=reconstructPath(result.prev,source,v);
+
+        row.innerHTML=`
+            <td>${v}</td>
+            <td>${result.dist[v]===Infinity?"INF":result.dist[v]}</td>
+            <td>${path.length?path.join(" → "):"No Path"}</td>
+        `;
+
+        tbody.appendChild(row);
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
